@@ -1,6 +1,8 @@
 # import flask libraries
 
 from flask import Flask, request, jsonify
+import joblib # Import joblib here
+import pandas as pd # Import pandas here
 
 # initialize the flask application
 
@@ -8,7 +10,7 @@ Learner_predictor_api = Flask("Learner Predictor")
 
 # Load the trained model
 
-trained_model = joblib.load("backend_files/best_random_forest_model.pkl")
+trained_model = joblib.load("backend_files/best_random_forest_model.joblib")
 
 #Define route for home page (GET request)
 
@@ -23,7 +25,7 @@ def predict():
   learner_data = request.get_json()
 
 # Extract relevant features from JSON data
-sample = {
+  sample = {
     "age": learner_data["age"],
     "current_occupation": learner_data["current_occupation"],
     "first_interaction": learner_data["first_interaction"],
@@ -40,13 +42,13 @@ sample = {
 }
 
 # convert the extracted data into a Pandas Dataframe
-input_data = pd.Dataframe([sample])
+  input_data = pd.DataFrame([sample])
 
 # Make prediction (get status of learner)
-predicted_status = trained_model.predict(input_data)
+  predicted_status = trained_model.predict(input_data)
 
 #return the predicted status
-return jsonify({'Predicted status of learner': str(predicted_status[0])})
+  return jsonify({'Predicted status of learner': str(predicted_status[0])})
 
 # Define the endpoint for batch prediction (POST request)
 @Learner_predictor_api.post("/v1/predictbatch")
@@ -54,17 +56,17 @@ def predict_batch():
   batch_datafile = request.files['file']
 
 # read the csv file into a Pandas Dataframe
-input_data = pd.read_csv(batch_datafile)
+  input_data = pd.read_csv(batch_datafile)
 
 # Make prediction (get status of learner)
-predicted_status = trained_model.predict(input_data)
+  predicted_status = trained_model.predict(input_data)
 
 # create dictionary of predictions with learner IDs as keys
-learner_id = input_data['ID'].tolist()
-predicted_status_dict = dict(zip(learner_id, predicted_status))
+  learner_id = input_data['ID'].tolist()
+  predicted_status_dict = dict(zip(learner_id, predicted_status))
 
 # return the predictions as a JSON response
-return predicted_status_dict
+  return predicted_status_dict
 
 # run the flask application in debug mode inf this script is executed directly
 if __name__ == "__main__":
